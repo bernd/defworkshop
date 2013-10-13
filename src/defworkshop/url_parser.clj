@@ -12,7 +12,7 @@
 ;; We'll have an interface definition for you. You can check tests to see which arguments your functions
 ;; will be called with.
 
-(defn ^:not-implemented get-parts
+(defn get-parts
   "Gets parts of the URL, for example, for `\"/a/b/c\"`  it would return
 
      [\"a\", \"b\", \"c\"].
@@ -20,24 +20,27 @@
    You can use `clojure.string/split` for splitting the sequence.
    To create a regular expression from string, you can use `#\"\"` shortcut."
   [s]
-  (…))
+  (string/split s #"/"))
 
-(defn ^:not-implemented named-argument?
+(defn named-argument?
   "Checks wether the given route part is a named argument.
 
    Basically, checks wether the string starts with `:`."
   [part]
-  (…))
+  (re-find #"^:" part))
 
-(defn ^:not-implemented extract-named-argument
+(defn extract-named-argument
   "Converts url part (string) into key for the argument hash (keyword), stripping leading `:`.
 
      * You can use `subs` to get a part of string.
      * You can use `keyword` to create a keyword."
   [part]
-  (…))
+  (keyword (subs part 1)))
 
-(defn ^:not-implemented uri-matches?
+(comment
+  (extract-named-argument ":bar"))
+
+(defn uri-matches?
   "Checks wether URI matches given pattern.
 
    Given you have a url `'/people/123'` and pattern `'/people/:id'`, their parts would look like:
@@ -61,7 +64,23 @@
         pattern-parts (get-parts pattern)]
     (and (= (count uri-parts)
             (count pattern-parts))
-         (…))))
+         (comment (loop [[head & tail] (partition 2 (interleave uri-parts pattern-parts))]
+           (let [[uri pattern] head]
+             (if
+               (or
+                 (= uri pattern)
+                 (re-find #"^:" pattern))
+               (if (empty? tail)
+                 true
+                 (recur tail))
+               false))))
+         (loop [[u-head & u-tail] uri-parts
+                [p-head & p-tail] pattern-parts]
+           (if (or (= u-head p-head) (re-find #"^:" p-head))
+             (if (empty? p-tail)
+               true
+               (recur u-tail p-tail))
+             false)))))
 
 (defn ^:not-implemented extract-arguments
   "Extracts named arguments from the string, based on a pattern."
