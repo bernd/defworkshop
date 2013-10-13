@@ -3,32 +3,54 @@
 
 ;; More often than not, state can be avoided by using recursion. Let's see how it works
 
-(defn ^:not-implemented reverse-coll
+(defn reverse-coll
   "Reverse the collection `coll`.
 
    You can use `loop/recur` construct to loop over the sequence.
    `cons` prepends items to the list, try that out."
   [coll]
-  (…))
+  (loop [c coll
+         acc '()]
+    (if (empty? c)
+      acc
+      (recur (rest c) (cons (first c) acc))))
+  ; This one was my first implementation
+  #_(loop [[head & tail] coll
+         acc '()]
+    (if head
+      (recur tail (cons head acc))
+      acc)))
 
-(defn ^:not-implemented recursive-sum
+(defn recursive-sum
   "We've already implemented sum using reduce, now let's move to implementing it via recursion!"
   [[head & tail]]
-  (…))
+  (if head
+    (loop [memo head
+           [h & t] tail]
+      (if h
+        (recur (+ memo h) t)
+        memo))
+    0))
 
-(defn ^:not-implemented recursive-sum-tc
+(defn recursive-sum-tc
   "with a tail-recursive version of sum, we can avoid stack overflows."
   ([coll]
      (recursive-sum-tc coll 0))
   ([[head & tail] acc]
-     (…)))
+   (let [sum (+ acc head)]
+     (if tail
+       (recursive-sum-tc tail sum)
+       sum))))
 
-(defn ^:not-implemented max-from-list
+(defn max-from-list
   "Get the maximum from list using recursion"
   [[head & tail]]
   (if (empty? tail)
     head
-    (…)))
+    (let [max-in-list (max-from-list tail)]
+      (if (> head max-in-list)
+        head
+        max-in-list))))
 
 (defn ^:not-implemented my-reduce
   "generalizing the recursive sum example, write your own implementation of reduce! (for empty coll, just return nil.)"
